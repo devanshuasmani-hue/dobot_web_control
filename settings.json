@@ -1,0 +1,34 @@
+{
+  "port": "COM5",
+  "tool": "gripper",
+  "playback_speed": 40,
+  "jog": {
+    "speed": 30,
+    "increment": 5.0
+  },
+  "limits": {
+    "x": [
+      -320.0,
+      320.0
+    ],
+    "y": [
+      -320.0,
+      320.0
+    ],
+    "z": [
+      -30.0,
+      170.0
+    ],
+    "r": [
+      -135.0,
+      135.0
+    ],
+    "min_radius": 100.0,
+    "max_radius": 330.0
+  },
+  "grip_time": 1.0,
+  "arrive_mm": 1.5,
+  "move_timeout": 30.0,
+  "jump_warn_mm": 250.0,
+  "client_lost_grace_s": 3.0
+}

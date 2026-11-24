@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dobot Magician • Smart Robotics Control System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- =========================================================================
+         TOP NAVIGATION & SYSTEM HEADER
+         ========================================================================= -->
+    <header class="top-nav">
+        <div class="brand-group">
+            <div class="brand-symbol">
+                <svg viewBox="0 0 32 32" fill="none" class="robot-icon" aria-hidden="true">
+                    <path d="M16 3L4 9V23L16 29L28 23V9L16 3Z" stroke="url(#cyanGrad)" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="16" cy="16" r="4.5" fill="#00f0ff" fill-opacity="0.2" stroke="#00f0ff" stroke-width="1.5"/>
+                    <path d="M16 7.5V11.5M16 20.5V24.5M8.5 12L12 14M20 18L23.5 20" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="cyanGrad" x1="4" y1="3" x2="28" y2="29" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#00f0ff"/>
+                            <stop offset="1" stop-color="#0066ff"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="pulse-ring"></div>
+            </div>
+            <div class="brand-meta">
+                <div class="brand-tag">
+                    <span class="subsystem-label">INDUSTRY 4.0 SCADA</span>
+                    <span class="version-tag">REV 4.2</span>
+                </div>
+                <h1 class="system-title">Dobot Magician</h1>
+                <p class="system-subtitle">Smart Robotics Control System</p>
+            </div>
+        </div>
+
+        <div class="telemetry-badges">
+            <div class="telemetry-pill">
+                <span class="pill-label">CONNECTION</span>
+                <div class="pill-value">
+                    <span class="led-dot" id="connectionLed"></span>
+                    <span id="connectionStatus" class="status-text">DISCONNECTED</span>
+                </div>
+            </div>
+
+            <div class="telemetry-pill">
+                <span class="pill-label">ROBOT STATE</span>
+                <div class="pill-value">
+                    <span class="led-dot state-dot" id="stateLed"></span>
+                    <span id="robotState" class="status-text state-badge">OFFLINE</span>
+                </div>
+            </div>
+
+            <div class="telemetry-pill">
+                <span class="pill-label">MOTION</span>
+                <div class="pill-value">
+                    <span class="led-dot motion-dot" id="motionLed"></span>
+                    <span id="movementStatus" class="status-text motion-badge">IDLE</span>
+                </div>
+            </div>
+
+            <div class="telemetry-pill clock-pill">
+                <span class="pill-label">SYSTEM TIME (UTC)</span>
+                <div class="pill-value clock-value" id="systemClock">00:00:00</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================================
+         COMMS & HARDWARE LINK BAR
+         ========================================================================= -->
+    <section class="hardware-link-bar">
+        <div class="link-label-group">
+            <svg class="com-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+            </svg>
+            <span class="bar-heading">HARDWARE INTERFACE</span>
+        </div>
+
+        <div class="link-controls">
+            <div class="select-wrapper">
+                <select id="port" class="industrial-select" title="Select COM Port">
+                    <option value="">Scanning COM Ports...</option>
+                </select>
+            </div>
+            <button class="btn btn-secondary btn-icon-text" onclick="refreshPorts()" title="Rescan Serial Ports">
+                <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path fill-rule="evenodd" d="M8 3a5 5 0 104.546 2.914.5.5 0 01.908-.417A6 6 0 118 2v1z"/><path d="M8 4.466V.534a.25.25 0 01.41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 018 4.466z"/></svg>
+                <span>Refresh</span>
+            </button>
+            <button class="btn btn-primary btn-icon-text" onclick="connectRobot()" title="Establish Serial Link">
+                <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H8.5v1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5v-1A1.5 1.5 0 0 1 7.5 10V9H2a.5.5 0 0 1-.5-.5v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5v-1z"/></svg>
+                <span>Connect</span>
+            </button>
+            <button class="btn btn-danger-outline btn-icon-text" onclick="disconnectRobot()" title="Sever Serial Link">
+                <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>
+                <span>Disconnect</span>
+            </button>
+        </div>
+
+        <div class="link-status-info">
+            <span class="info-prefix">STATUS:</span>
+            <span id="robotInfo" class="info-text">Connect your Dobot Magician to begin.</span>
+        </div>
+    </section>
+
+    <!-- =========================================================================
+         MAIN MULTI-PANEL SCADA GRID
+         ========================================================================= -->
+    <main class="main-dashboard-grid">
+
+        <!-- =====================================================================
+             COLUMN 1: TELEMETRY & CARTESIAN MOVEMENT
+             ===================================================================== -->
+        <div class="grid-column col-telemetry">
+
+            <!-- ROBOT POSITION HUD -->
+            <section class="card scada-card hud-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <span class="card-indicator"></span>
+                        <h2 class="card-title">Live Kinematic Telemetry</h2>
+                    </div>
+                    <span class="card-badge">REAL-TIME POSE</span>
+                </div>
+
+                <div class="pose-hud-grid">
+                    <div class="hud-digit-box axis-x">
+                        <div class="axis-header">
+                            <span class="axis-tag">AXIS X</span>
+                            <span class="axis-plane">SAGITTAL</span>
+                        </div>
+                        <div class="digit-readout">
+                            <span class="coord-val" id="posX">--</span>
+                            <span class="coord-unit">mm</span>
+                        </div>
+                        <div class="axis-bar"><div class="axis-bar-fill" id="barX"></div></div>
+                    </div>
+
+                    <div class="hud-digit-box axis-y">
+                        <div class="axis-header">
+                            <span class="axis-tag">AXIS Y</span>
+                            <span class="axis-plane">LATERAL</span>
+                        </div>
+                        <div class="digit-readout">
+                            <span class="coord-val" id="posY">--</span>
+                            <span class="coord-unit">mm</span>
+                        </div>
+                        <div class="axis-bar"><div class="axis-bar-fill" id="barY"></div></div>
+                    </div>
+
+                    <div class="hud-digit-box axis-z">
+                        <div class="axis-header">
+                            <span class="axis-tag">AXIS Z</span>
+                            <span class="axis-plane">VERTICAL</span>
+                        </div>
+                        <div class="digit-readout">
+                            <span class="coord-val" id="posZ">--</span>
+                            <span class="coord-unit">mm</span>
+                        </div>
+                        <div class="axis-bar"><div class="axis-bar-fill" id="barZ"></div></div>
+                    </div>
+
+                    <div class="hud-digit-box axis-r">
+                        <div class="axis-header">
+                            <span class="axis-tag">AXIS R</span>
+                            <span class="axis-plane">ROTATION</span>
+                        </div>
+                        <div class="digit-readout">
+                            <span class="coord-val" id="posR">--</span>
+                            <span class="coord-unit">°</span>
+                        </div>
+                        <div class="axis-bar"><div class="axis-bar-fill" id="barR"></div></div>
+                    </div>
+                </div>
+
+                <!-- 2D ENVELOPE RADAR -->
+                <div class="radar-container">
+                    <div class="radar-meta">
+                        <span class="radar-title">WORKSPACE REACH ENVELOPE (R=320mm)</span>
+                        <span class="radar-coords" id="radarCoords">X: 0.0 | Y: 0.0</span>
+                    </div>
+                    <canvas id="envelopeCanvas" width="300" height="150" class="radar-canvas"></canvas>
+                </div>
+
+                <div class="tool-status-strip">
+                    <div class="tool-metric">
+                        <span class="metric-label">ACTIVE END EFFECTOR:</span>
+                        <strong id="toolStatus" class="metric-value">Unknown</strong>
+                    </div>
+                    <div class="tool-metric">
+                        <span class="metric-label">COMMUNICATION LINK:</span>
+                        <span id="commStatus" class="metric-value live-comm">ACTIVE (WS)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MANUAL CARTESIAN MOVEMENT -->
+            <section class="card scada-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <span class="card-indicator"></span>
+                        <h2 class="card-title">Cartesian Positioning</h2>
+                    </div>
+                    <span class="card-badge">DIRECT MOVE</span>
+                </div>
+
+                <div class="coordinate-inputs-grid">
+                    <div class="coord-field">
+                        <label for="x" class="input-label">Target X (mm)</label>
+                        <div class="input-stepper">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('x', -10)">-</button>
+                            <input id="x" type="number" step="1" value="200" class="coord-input" inputmode="decimal">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('x', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="coord-field">
+                        <label for="y" class="input-label">Target Y (mm)</label>
+                        <div class="input-stepper">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('y', -10)">-</button>
+                            <input id="y" type="number" step="1" value="0" class="coord-input" inputmode="decimal">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('y', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="coord-field">
+                        <label for="z" class="input-label">Target Z (mm)</label>
+                        <div class="input-stepper">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('z', -10)">-</button>
+                            <input id="z" type="number" step="1" value="50" class="coord-input" inputmode="decimal">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('z', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="coord-field">
+                        <label for="r" class="input-label">Target R (°)</label>
+                        <div class="input-stepper">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('r', -10)">-</button>
+                            <input id="r" type="number" step="1" value="0" class="coord-input" inputmode="decimal">
+                            <button type="button" class="btn-nudge" onclick="nudgeInput('r', 10)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-presets">
+                    <span class="presets-label">QUICK TARGETS:</span>
+                    <div class="preset-chips">
+                        <button type="button" class="chip" onclick="applyPreset(200, 0, 50, 0)">Standby</button>
+                        <button type="button" class="chip" onclick="applyPreset(250, 0, -20, 0)">Table</button>
+                        <button type="button" class="chip" onclick="applyPreset(180, -120, 20, -45)">Pick Zone A</button>
+                        <button type="button" class="chip" onclick="applyPreset(180, 120, 20, 45)">Place Zone B</button>
+                    </div>
+                </div>
+
+                <div class="action-btn-row">
+                    <button class="btn btn-primary btn-large flex-1" onclick="moveRobot()" title="Command Robot to Coordinates">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/></svg>
+                        <span>Execute Move Command</span>
+                    </button>
+                    <button class="btn btn-secondary btn-icon-text" onclick="homeRobot()" title="Calibrate Robot to Home">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"/></svg>
+                        <span>Home Robot</span>
+                    </button>
+                </div>
+
+                <!-- END EFFECTOR TOOL CONTROL -->
+                <div class="tool-control-subcard">
+                    <div class="subcard-title-row">
+                        <h3 class="subcard-title">End Effector Actuation</h3>
+                        <span class="subcard-tag">PNEUMATIC / GRIPPER</span>
+                    </div>
+
+                    <div class="tool-btn-grid">
+                        <button class="btn btn-cyan btn-tool" onclick="toolAction('open')">
+                            <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M8 1a2 2 0 0 1 2 2v2H6V3a2 2 0 0 1 2-2zm3 4V3a3 3 0 1 0-6 0v2H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2zM4 6h8v7H4V6z"/></svg>
+                            <span>TOOL OPEN</span>
+                        </button>
+                        <button class="btn btn-emerald btn-tool" onclick="toolAction('close')">
+                            <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+                            <span>TOOL CLOSE</span>
+                        </button>
+                        <button class="btn btn-secondary btn-tool" onclick="toolAction('stop')">
+                            <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg>
+                            <span>TOOL OFF</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- =====================================================================
+             COLUMN 2: INDUSTRIAL JOG CONTROLS (JOYSTICK)
+             ===================================================================== -->
+        <div class="grid-column col-joystick">
+
+            <section class="card scada-card joystick-station">
+                <div class="card-header">
+                    <div class="header-left">
+                        <span class="card-indicator"></span>
+                        <h2 class="card-title">Motion Jog Station</h2>
+                    </div>
+                    <span class="card-badge">TACTILE & TOUCH</span>
+                </div>
+
+                <p class="section-hint">Hold direction pad to jog continuously. Release to halt motion.</p>
+
+                <div class="joystick-master-layout">
+                    <!-- PLANAR XY JOG CROSS -->
+                    <div class="dpad-container">
+                        <div class="dpad-label">XY PLANAR CONTROL</div>
+                        <div class="dpad-matrix">
+                            <div class="dpad-slot empty"></div>
+                            <button data-axis="Y" data-dir="1" class="dpad-btn dpad-up" title="Jog Forward (Y+)">
+                                <span class="dpad-arrow">▲</span>
+                                <span class="dpad-tag">Y+</span>
+                            </button>
+                            <div class="dpad-slot empty"></div>
+
+                            <button data-axis="X" data-dir="-1" class="dpad-btn dpad-left" title="Jog Left (X-)">
+                                <span class="dpad-arrow">◀</span>
+                                <span class="dpad-tag">X-</span>
+                            </button>
+                            <button class="dpad-center j-center" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="center-crosshair">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
+                                </svg>
+                                <span>XY</span>
+                            </button>
+                            <button data-axis="X" data-dir="1" class="dpad-btn dpad-right" title="Jog Right (X+)">
+                                <span class="dpad-arrow">▶</span>
+                                <span class="dpad-tag">X+</span>
+                            </button>
+
+                            <div class="dpad-slot empty"></div>
+                            <button data-axis="Y" data-dir="-1" class="dpad-btn dpad-down" title="Jog Backward (Y-)">
+                                <span class="dpad-tag">Y-</span>
+                                <span class="dpad-arrow">▼</span>
+                            </button>
+                            <div class="dpad-slot empty"></div>
+                        </div>
+                    </div>
+
+                    <!-- VERTICAL (Z) & ROTATION (R) AXIS STRIP -->
+                    <div class="aux-axis-strip">
+                        <div class="aux-column">
+                            <span class="aux-col-label">ELEVATION (Z)</span>
+                            <div class="rocker-group">
+                                <button data-axis="Z" data-dir="1" class="rocker-btn rocker-z-up" title="Jog Up (Z+)">
+                                    <span class="rocker-arrow">▲</span>
+                                    <span class="rocker-text">Z +</span>
+                                </button>
+                                <button data-axis="Z" data-dir="-1" class="rocker-btn rocker-z-down" title="Jog Down (Z-)">
+                                    <span class="rocker-arrow">▼</span>
+                                    <span class="rocker-text">Z -</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="aux-column">
+                            <span class="aux-col-label">ROTATION (R)</span>
+                            <div class="rocker-group">
+                                <button data-axis="R" data-dir="1" class="rocker-btn rocker-r-cw" title="Rotate CW (R+)">
+                                    <span class="rocker-arrow">↻</span>
+                                    <span class="rocker-text">R +</span>
+                                </button>
+                                <button data-axis="R" data-dir="-1" class="rocker-btn rocker-r-ccw" title="Rotate CCW (R-)">
+                                    <span class="rocker-arrow">↺</span>
+                                    <span class="rocker-text">R -</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLET TOUCH JOYSTICK PUCK -->
+                <div class="virtual-joystick-wrap">
+                    <div class="virtual-joy-header">
+                        <span class="vjoy-label">INTERACTIVE TABLET JOYSTICK</span>
+                        <span class="vjoy-sub">DRAG PUCK TO JOG XY</span>
+                    </div>
+                    <div class="vjoy-stage" id="vjoyStage">
+                        <div class="vjoy-boundary">
+                            <div class="vjoy-crosshair-h"></div>
+                            <div class="vjoy-crosshair-v"></div>
+                            <div class="vjoy-puck" id="vjoyPuck">
+                                <div class="puck-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JOG DYNAMICS / SPEED CONTROLS -->
+                <div class="jog-parameters-panel">
+                    <div class="jog-param-row">
+                        <label for="jogStep" class="param-label">
+                            <span>Incremental Step Size</span>
+                            <span class="param-unit">(mm / deg)</span>
+                        </label>
+                        <div class="step-chip-row">
+                            <select id="jogStep" class="industrial-select step-select">
+                                <option value="1">1 mm / deg</option>
+                                <option value="2" selected>2 mm / deg</option>
+                                <option value="5">5 mm / deg</option>
+                                <option value="10">10 mm / deg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="jog-param-row">
+                        <div class="slider-header">
+                            <label for="jogSpeed" class="param-label">
+                                <span>Jog Movement Velocity</span>
+                            </label>
+                            <span class="slider-val-badge"><span id="jogSpeedVal">20</span>%</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="jogSpeedSlider" min="1" max="100" value="20" class="modern-slider">
+                            <input id="jogSpeed" type="number" min="1" max="100" value="20" class="slider-num-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SAFETY STOP FOR JOYSTICK -->
+                <div class="jog-stop-container">
+                    <button class="btn btn-danger-solid btn-large full-width" onclick="stopJoystick()" title="Immediately Halt Active Jog">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg>
+                        <span>HALT JOG MOTION</span>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- =====================================================================
+             COLUMN 3: TEACH & REPLAY AUTOMATION
+             ===================================================================== -->
+        <div class="grid-column col-automation">
+
+            <!-- TEACH MODE -->
+            <section class="card scada-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <span class="card-indicator"></span>
+                        <h2 class="card-title">Teach & Record Studio</h2>
+                    </div>
+                    <span class="card-badge">SEQUENCE CREATOR</span>
+                </div>
+
+                <p class="section-hint">Unlock the Dobot arm manually or jog to position, then capture program waypoints.</p>
+
+                <!-- SESSION SETUP -->
+                <div class="teach-setup-box">
+                    <div class="teach-inputs-row">
+                        <div class="field-wrap flex-2">
+                            <label for="teachName" class="input-label">Program Identifier</label>
+                            <input id="teachName" type="text" placeholder="e.g. PCB_Pick_Place" class="industrial-input" value="Sequence_01">
+                        </div>
+                        <div class="field-wrap flex-1">
+                            <label for="teachTool" class="input-label">End Effector</label>
+                            <select id="teachTool" class="industrial-select">
+                                <option value="suction" selected>Suction Cup</option>
+                                <option value="gripper">Servo Gripper</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="btn-grid-dual">
+                        <button class="btn btn-primary" onclick="startTeaching()">
+                            <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>
+                            <span>Start Teaching</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="cancelTeaching()">
+                            <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>
+                            <span>Cancel</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WAYPOINT CAPTURE -->
+                <div class="waypoint-action-strip">
+                    <div class="point-name-wrap">
+                        <label for="pointName" class="input-label">Waypoint Tag</label>
+                        <div class="input-action-row">
+                            <input id="pointName" type="text" value="Point 1" class="industrial-input">
+                            <button class="btn btn-cyan btn-record" onclick="recordPoint()" title="Capture Current Dobot Position">
+                                <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><circle cx="8" cy="8" r="4"/></svg>
+                                <span>Record Position</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROGRAM ACTIONS -->
+                    <div class="program-actions-row">
+                        <span class="sub-label">INJECT TOOL ACTION:</span>
+                        <div class="action-chips">
+                            <button class="btn btn-secondary btn-chip" onclick="teachAction('open')">Open</button>
+                            <button class="btn btn-secondary btn-chip" onclick="teachAction('close')">Close</button>
+                            <button class="btn btn-secondary btn-chip" onclick="teachAction('stop')">Tool OFF</button>
+                        </div>
+                    </div>
+
+                    <div class="program-wait-row">
+                        <div class="field-wrap flex-1">
+                            <label for="waitSeconds" class="input-label">Dwell Time (seconds)</label>
+                            <div class="input-action-row">
+                                <input id="waitSeconds" type="number" min="0" max="3600" value="2" class="industrial-input" style="max-width: 100px;">
+                                <button class="btn btn-secondary" onclick="addWait()">+ Add Wait</button>
+                                <button class="btn btn-secondary" onclick="undoTeach()" title="Remove previous waypoint">↺ Undo</button>
+                                <button class="btn btn-emerald" onclick="saveTeaching()" title="Save sequence to storage">✔ Save Program</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEQUENCE TIMELINE LIST -->
+                <div class="timeline-container">
+                    <div class="timeline-header">
+                        <span class="timeline-title">RECORDED TIMELINE SEQUENCE</span>
+                        <span id="teachStatus" class="teach-status-badge">No active teaching session</span>
+                    </div>
+                    <div id="teachSteps" class="step-list-scada">
+                        <div class="empty-timeline-hint">No steps recorded in current session.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROGRAM PLAYBACK & AUTOMATION -->
+            <section class="card scada-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <span class="card-indicator"></span>
+                        <h2 class="card-title">Sequence Replay Engine</h2>
+                    </div>
+                    <span class="card-badge">EXECUTION</span>
+                </div>
+
+                <div class="playback-config-grid">
+                    <div class="field-wrap flex-2">
+                        <label for="programSelect" class="input-label">Stored Program</label>
+                        <select id="programSelect" class="industrial-select">
+                            <option value="">Select saved program...</option>
+                        </select>
+                    </div>
+
+                    <div class="field-wrap flex-1">
+                        <label for="playRepeat" class="input-label">Cycles</label>
+                        <input id="playRepeat" type="number" min="1" max="1000" value="1" class="industrial-input">
+                    </div>
+                </div>
+
+                <div class="jog-param-row playback-speed-row">
+                    <div class="slider-header">
+                        <label for="playSpeed" class="param-label">
+                            <span>Replay Execution Velocity</span>
+                        </label>
+                        <span class="slider-val-badge"><span id="playSpeedVal">25</span>%</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="playSpeedSlider" min="1" max="100" value="25" class="modern-slider">
+                        <input id="playSpeed" type="number" min="1" max="100" value="25" class="slider-num-input">
+                    </div>
+                </div>
+
+                <div class="playback-controls-row">
+                    <button class="btn btn-secondary" onclick="refreshPrograms()">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path fill-rule="evenodd" d="M8 3a5 5 0 104.546 2.914.5.5 0 01.908-.417A6 6 0 118 2v1z"/></svg>
+                        <span>Refresh</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadProgram()">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        <span>Load</span>
+                    </button>
+                    <button class="btn btn-emerald btn-play" onclick="playProgram()">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>
+                        <span>Start Replay</span>
+                    </button>
+                    <button class="btn btn-danger-solid btn-stop" onclick="stopPlayback()">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/></svg>
+                        <span>Stop</span>
+                    </button>
+                </div>
+
+                <div class="replay-progress-card">
+                    <div class="progress-status-strip">
+                        <span class="status-indicator-dot"></span>
+                        <span id="playStatus" class="play-status-msg">Playback idle.</span>
+                        <span class="play-percent" id="playPercentVal">0%</span>
+                    </div>
+                    <div class="industrial-progress-track">
+                        <progress id="playProgress" value="0" max="100" class="native-progress"></progress>
+                        <div class="custom-progress-bar" id="customProgressBar"></div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- =========================================================================
+         SAFETY & SCADA EVENT TERMINAL
+         ========================================================================= -->
+    <footer class="bottom-system-grid">
+
+        <!-- EMERGENCY CONTROL STATION -->
+        <section class="card scada-card emergency-station">
+            <div class="emergency-badge-row">
+                <span class="hazard-stripe"></span>
+                <span class="hazard-title">CRITICAL SAFETY SYSTEM</span>
+                <span class="hazard-stripe"></span>
+            </div>
+
+            <div class="emergency-content">
+                <button class="estop-industrial-btn" onclick="emergencyStop()" title="Execute Master Software Emergency Stop">
+                    <div class="estop-inner-ring">
+                        <div class="estop-core">
+                            <span class="estop-text-large">EMERGENCY STOP</span>
+                            <span class="estop-text-small">PUSH TO INHIBIT ALL MOTION</span>
+                        </div>
+                    </div>
+                </button>
+
+                <div class="estop-meta">
+                    <p class="safety-note">
+                        <strong>SAFETY MANDATE:</strong> Software emergency stop triggers instant trajectory abort and motor power cutoff command. This is an auxiliary control and does not supersede the physical safety circuit.
+                    </p>
+                    <button class="btn btn-secondary btn-reset-estop" onclick="resetStop()">
+                        <svg viewBox="0 0 16 16" fill="currentColor" class="btn-svg"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/></svg>
+                        <span>Reset Software Stop Condition</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM ACTIVITY / SCADA EVENT LOG -->
+        <section class="card scada-card terminal-card">
+            <div class="card-header terminal-header">
+                <div class="header-left">
+                    <span class="card-indicator terminal-indicator"></span>
+                    <h2 class="card-title">Telemetry & Activity Terminal</h2>
+                </div>
+                <div class="terminal-actions">
+                    <button class="btn-terminal-clear" onclick="clearEventLogs()" title="Clear terminal lines">Clear</button>
+                    <span class="card-badge">LIVE STREAM</span>
+                </div>
+            </div>
+
+            <div id="logs" class="scada-terminal-window" role="log" aria-live="polite">
+                <div class="log-info">[INIT] Dobot SCADA Control System loaded. Ready for telemetry stream.</div>
+            </div>
+        </section>
+
+    </footer>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dobot Control Center</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+    <div>
+        <p>SMART MANUFACTURING / INDUSTRY 4.0</p>
+        <h1>Dobot Control Center</h1>
+        <small>Web-Based Robotic Control Platform</small>
+    </div>
+    <div id="connectionStatus" class="status">DISCONNECTED</div>
+</header>
+
+<main>
+
+<section class="card">
+    <h2>Robot Connection</h2>
+    <div class="controls">
+        <select id="port">
+            <option value="">Select COM Port</option>
+        </select>
+        <button onclick="refreshPorts()">Refresh</button>
+        <button onclick="connectRobot()">Connect</button>
+        <button class="secondary" onclick="disconnectRobot()">Disconnect</button>
+    </div>
+    <p id="robotInfo">Connect your Dobot Magician to begin.</p>
+</section>
+
+<div class="dashboard">
+
+<section class="card">
+    <h2>Live Robot Position</h2>
+    <div class="position-grid">
+        <div><span>X (mm)</span><strong id="posX">--</strong></div>
+        <div><span>Y (mm)</span><strong id="posY">--</strong></div>
+        <div><span>Z (mm)</span><strong id="posZ">--</strong></div>
+        <div><span>R (°)</span><strong id="posR">--</strong></div>
+    </div>
+    <p>Tool: <strong id="toolStatus">Unknown</strong></p>
+    <p>Movement: <strong id="movementStatus">Unknown</strong></p>
+    <p>Robot state: <strong id="robotState">Unknown</strong></p>
+</section>
+
+<section class="card">
+    <h2>Manual Movement</h2>
+    <div class="inputs">
+        <label>X (mm)<input id="x" type="number" value="200"></label>
+        <label>Y (mm)<input id="y" type="number" value="0"></label>
+        <label>Z (mm)<input id="z" type="number" value="50"></label>
+        <label>R (°)<input id="r" type="number" value="0"></label>
+    </div>
+    <button class="full" onclick="moveRobot()">Move Robot</button>
+
+    <h3>End Effector</h3>
+    <div class="controls">
+        <button onclick="toolAction('open')">Open</button>
+        <button onclick="toolAction('close')">Close</button>
+        <button class="secondary" onclick="toolAction('stop')">Tool OFF</button>
+    </div>
+    <button class="secondary full" onclick="homeRobot()">Home Robot</button>
+</section>
+
+</div>
+
+<!-- JOYSTICK -->
+<section class="card">
+    <h2>Robot Joystick</h2>
+    <p>Press and hold a direction to move incrementally. Release to stop.</p>
+
+    <div class="joystick-layout">
+        <div class="joystick-pad">
+            <button data-axis="Y" data-dir="1" class="j-up">Y+</button>
+            <button data-axis="X" data-dir="-1" class="j-left">X-</button>
+            <button class="j-center" disabled>XY</button>
+            <button data-axis="X" data-dir="1" class="j-right">X+</button>
+            <button data-axis="Y" data-dir="-1" class="j-down">Y-</button>
+        </div>
+
+        <div class="joystick-z">
+            <button data-axis="Z" data-dir="1">Z+</button>
+            <button data-axis="Z" data-dir="-1">Z-</button>
+            <button data-axis="R" data-dir="1">R+</button>
+            <button data-axis="R" data-dir="-1">R-</button>
+        </div>
+    </div>
+
+    <div class="inputs">
+        <label>Step size (mm / degrees)
+            <select id="jogStep">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="5">5</option>
+            </select>
+        </label>
+        <label>Movement speed (%)
+            <input id="jogSpeed" type="number" min="1" max="100" value="20">
+        </label>
+    </div>
+    <button class="danger full" onclick="stopJoystick()">STOP JOYSTICK</button>
+</section>
+
+<!-- TEACH MODE -->
+<section class="card">
+    <h2>Teach Mode</h2>
+    <p>Guide the robot manually using its physical unlock button, then capture positions as program steps.</p>
+
+    <div class="inputs">
+        <label>Program name
+            <input id="teachName" type="text" placeholder="Example: Pick and Place">
+        </label>
+        <label>End effector
+            <select id="teachTool">
+                <option value="suction">Suction cup</option>
+                <option value="gripper">Gripper</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="controls">
+        <button onclick="startTeaching()">Start Teaching</button>
+        <button class="secondary" onclick="cancelTeaching()">Cancel</button>
+    </div>
+
+    <hr>
+
+    <h3>Record a Position</h3>
+    <div class="inputs">
+        <label>Point name
+            <input id="pointName" type="text" value="Point 1">
+        </label>
+    </div>
+    <button class="full" onclick="recordPoint()">Record Current Position</button>
+
+    <h3>Program Actions</h3>
+    <div class="controls">
+        <button onclick="teachAction('open')">Open</button>
+        <button onclick="teachAction('close')">Close</button>
+        <button class="secondary" onclick="teachAction('stop')">Tool OFF</button>
+    </div>
+
+    <div class="inputs">
+        <label>Wait (seconds)
+            <input id="waitSeconds" type="number" min="0" max="3600" value="2">
+        </label>
+    </div>
+
+    <div class="controls">
+        <button onclick="addWait()">Add Wait</button>
+        <button class="secondary" onclick="undoTeach()">Undo Last Step</button>
+        <button onclick="saveTeaching()">Save Program</button>
+    </div>
+
+    <h3>Current Teaching Sequence</h3>
+    <p id="teachStatus">No active teaching session.</p>
+    <div id="teachSteps" class="step-list">No steps recorded.</div>
+</section>
+
+<!-- PROGRAM PLAYBACK -->
+<section class="card">
+    <h2>Program Playback</h2>
+
+    <div class="inputs">
+        <label>Saved program
+            <select id="programSelect">
+                <option value="">Select program</option>
+            </select>
+        </label>
+        <label>Playback speed (%)
+            <input id="playSpeed" type="number" min="1" max="100" value="25">
+        </label>
+        <label>Repeat count
+            <input id="playRepeat" type="number" min="1" max="20" value="1">
+        </label>
+    </div>
+
+    <div class="controls">
+        <button onclick="refreshPrograms()">Refresh Programs</button>
+        <button onclick="loadProgram()">Load Program</button>
+        <button onclick="playProgram()">Start Playback</button>
+        <button class="danger" onclick="stopPlayback()">Stop Playback</button>
+    </div>
+
+    <p id="playStatus">Playback idle.</p>
+    <progress id="playProgress" value="0" max="100"></progress>
+</section>
+
+<!-- EMERGENCY -->
+<section class="card emergency">
+    <h2>Emergency Controls</h2>
+    <p>Software stop is not a replacement for the physical emergency stop.</p>
+    <button class="danger" onclick="emergencyStop()">EMERGENCY STOP</button>
+    <button class="secondary" onclick="resetStop()">Reset Software Stop</button>
+</section>
+
+<section class="card">
+    <h2>System Activity</h2>
+    <div id="logs">System ready.</div>
+</section>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

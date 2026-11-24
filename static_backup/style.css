@@ -1,0 +1,335 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #0b1120;
+    --panel: #131e30;
+    --panel-light: #1b2940;
+    --border: #293951;
+    --text: #e8eef8;
+    --muted: #91a2bb;
+    --blue: #3995ff;
+    --green: #22c58b;
+    --red: #f05252;
+    --yellow: #f5b942;
+}
+
+body {
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 22px;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+header h1 {
+    font-size: 25px;
+    letter-spacing: 0.4px;
+}
+
+header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+main {
+    max-width: 1450px;
+    margin: auto;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+section, .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 20px;
+    margin-bottom: 18px;
+    min-width: 0;
+}
+
+h2 {
+    font-size: 17px;
+    margin-bottom: 17px;
+}
+
+h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--muted);
+}
+
+p {
+    line-height: 1.5;
+}
+
+button, input, select {
+    font: inherit;
+}
+
+button {
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 10px 15px;
+    background: var(--blue);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.15s ease;
+    min-height: 40px;
+}
+
+button:hover {
+    filter: brightness(1.12);
+}
+
+button:active, button.active {
+    transform: scale(0.96);
+    filter: brightness(0.85);
+}
+
+button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+button.secondary {
+    background: var(--panel-light);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+button.success {
+    background: #087e5a;
+}
+
+button.danger {
+    background: #b72f39;
+}
+
+button.warning {
+    background: #a66c12;
+}
+
+input, select {
+    width: 100%;
+    min-width: 0;
+    background: #0d1727;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 11px;
+    outline: none;
+    margin-top: 6px;
+}
+
+input:focus, select:focus {
+    border-color: var(--blue);
+}
+
+label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.row > * {
+    flex: 1;
+}
+
+.connection-status {
+    font-weight: 700;
+    color: var(--yellow);
+}
+
+.pose-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.pose-card {
+    background: var(--panel-light);
+    border: 1px solid var(--border);
+    padding: 13px 8px;
+    border-radius: 9px;
+    text-align: center;
+}
+
+.pose-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.pose-card strong {
+    display: block;
+    margin-top: 7px;
+    font-size: 20px;
+}
+
+.joystick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 65px);
+    justify-content: center;
+    gap: 8px;
+    margin: 18px auto;
+}
+
+.joystick-grid button {
+    min-height: 58px;
+    font-size: 19px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.joystick-grid .empty {
+    visibility: hidden;
+}
+
+.joystick-grid .center {
+    background: var(--panel-light);
+    border-color: var(--border);
+}
+
+.axis-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.axis-controls button {
+    min-width: 85px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.teach-step {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    background: #0d1727;
+    border-radius: 7px;
+    margin-bottom: 7px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+#teachSteps {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 12px;
+}
+
+.progress-track {
+    height: 9px;
+    background: #0d1727;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+#playProgress {
+    width: 0%;
+    height: 100%;
+    background: var(--green);
+    transition: width 0.25s ease;
+}
+
+#logs {
+    background: #080e18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    height: 190px;
+    overflow-y: auto;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+}
+
+#logs div {
+    padding: 4px 0;
+    border-bottom: 1px solid #18243a;
+    overflow-wrap: anywhere;
+}
+
+.log-error {
+    color: #ff7777;
+}
+
+.log-info {
+    color: #a9c8ef;
+}
+
+small, .muted {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+@media (max-width: 850px) {
+    body {
+        padding: 13px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    header h1 {
+        font-size: 21px;
+    }
+
+    section, .panel {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pose-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .row {
+        gap: 7px;
+    }
+
+    .row button {
+        min-width: 100%;
+    }
+
+    .joystick-grid {
+        grid-template-columns: repeat(3, 60px);
+    }
+
+    .axis-controls button {
+        flex: 1;
+    }
+}
